@@ -1,5 +1,5 @@
 
-from flask import Flask
+from flask import Flask, Blueprint
 from flask import render_template
 import io
 import base64
@@ -7,6 +7,7 @@ import base64
 # TODO delete these eventually
 from pymoo.visualization.scatter import Scatter
 from pymoo.problems import get_problem
+# end delete these 
 
 import numpy as np
 
@@ -15,26 +16,6 @@ from pymoo.problems import get_problem
 from pymoo.optimize import minimize
 from pymoo.util.display.column import Column
 from pymoo.util.display.output import Output
-
-app = Flask(__name__)
-
-@app.route('/')
-def main():
-
-    # Get demo code 
-    F = get_problem("zdt3").pareto_front()
-    plt = Scatter().add(F).show()
-
-    # Set up I/O buffer to save the image 
-    buffer = io.BytesIO()
-
-    plt.fig.savefig(buffer, format='png', dpi=300)
-    buffer.seek(0)
-
-    # Encode bytes
-    plot_base64 = base64.b64encode(buffer.read()).decode('utf-8')
-
-    return render_template('app.html', image=plot_base64)
 
 
 class MyOutput(Output):
@@ -45,10 +26,32 @@ class MyOutput(Output):
         self.x_std = Column("x_std", width=13)
         self.columns += [self.x_mean, self.x_std]
 
-        
+        # Set up blueprints to organize routes
+        self.app = Flask(__name__)        
 
-        app.run() 
+        blue_print = Blueprint('blue_print', __name__)
+        blue_print.add_url_rule('/', view_func=self.dash_home)
+
+        self.app.register_blueprint(blue_print)
+        self.app.run() 
          
+    def dash_home(self):
+
+        # Get demo code 
+        F = get_problem("zdt3").pareto_front()
+        plt = Scatter().add(F).show()
+
+        # Set up I/O buffer to save the image 
+        buffer = io.BytesIO()
+
+        plt.fig.savefig(buffer, format='png', dpi=300)
+        buffer.seek(0)
+
+        # Encode bytes
+        plot_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+
+        return render_template('app.html', image=plot_base64)
+
 
     def update(self, algorithm):
         super().update(algorithm)
