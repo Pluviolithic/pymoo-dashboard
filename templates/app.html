@@ -1,8 +1,20 @@
 <!doctype html>
 
-<title>Hello from Flask</title>
-<h1>Hello, Pymoo!</h1>
+<html>
 
-<img src="data:image/gif;base64,{{image}}"
-alt="Base64 encoded image" width="300" height="300"/>
+  <head>
+    <script src="js/sseClient.js"></script>
+    <script src="{{ url_for('static', filename='js/sseClient.js') }}"></script>
+  </head>
+
+  <body>
+    <title>Hello from Flask</title>
+    <h1>Hello, Pymoo!</h1>
+
+    <img src="data:image/gif;base64,{{image}}"
+    alt="Base64 encoded image" width="300" height="300"/>
+  </body>
+
+</html>
+
 
