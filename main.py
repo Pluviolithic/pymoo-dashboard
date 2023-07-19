@@ -1,35 +1,40 @@
-
 from flask import Flask, Blueprint
 from flask import render_template
 import io
 import base64
 import asyncio
 import threading
-
+#
 # TODO delete these eventually
 from pymoo.visualization.scatter import Scatter
 from pymoo.problems import get_problem
 # end delete these 
 
+import matplotlib.pyplot as plt
 import numpy as np
 
-from pymoo.algorithms.moo.nsga2 import NSGA2
+from pymoo.algorithms.soo.nonconvex.ga import GA
 from pymoo.problems import get_problem
+from pymoo.core.callback import Callback
 from pymoo.optimize import minimize
-from pymoo.util.display.column import Column
-from pymoo.util.display.output import Output
 
 
-class MyOutput(Output):
+class MyCallback(Callback):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.x_mean = Column("x_mean", width=13)
-        self.x_std = Column("x_std", width=13)
-        self.columns += [self.x_mean, self.x_std]
+        self.data["best"] = []
 
-        self.flask_thread = threading.Thread(target=self.start_server)
+        self.flask_thread = threading.Thread(target=self.start_server, daemon=True)
         self.flask_thread.start() 
+
+    def notify(self, algorithm):
+        self.data["best"].append(algorithm.pop.get("F").min())
+       
+        if algorithm.termination.has_terminated():
+            print("Press any key and enter to exit")
+            input() 
+
 
     def start_server(self):
         # Set up blueprints to organize routes
@@ -40,7 +45,6 @@ class MyOutput(Output):
 
         self.app.register_blueprint(blue_print)
         self.app.run() 
-
 
     def dash_home(self):
 
@@ -59,26 +63,14 @@ class MyOutput(Output):
 
         return render_template('app.html', image=plot_base64)
 
+problem = get_problem("sphere")
 
-    def update(self, algorithm):
-        super().update(algorithm)
-        self.x_mean.set(np.mean(algorithm.pop.get("X")))
-        self.x_std.set(np.std(algorithm.pop.get("X")))
-        self.flask_thread.join()
-
-
-problem = get_problem("zdt2")
-
-algorithm = NSGA2(pop_size=100)
+algorithm = GA(pop_size=100)
 
 res = minimize(problem,
                algorithm,
-               ('n_gen', 200),
+               ('n_gen', 20),
                seed=1,
-               output=MyOutput(),
+               callback=MyCallback(),
                verbose=True)
-
-
-
-
 
