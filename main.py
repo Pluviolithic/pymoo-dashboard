@@ -3,6 +3,8 @@ from flask import Flask, Blueprint
 from flask import render_template
 import io
 import base64
+import asyncio
+import threading
 
 # TODO delete these eventually
 from pymoo.visualization.scatter import Scatter
@@ -26,6 +28,10 @@ class MyOutput(Output):
         self.x_std = Column("x_std", width=13)
         self.columns += [self.x_mean, self.x_std]
 
+        self.flask_thread = threading.Thread(target=self.start_server)
+        self.flask_thread.start() 
+
+    def start_server(self):
         # Set up blueprints to organize routes
         self.app = Flask(__name__)        
 
@@ -34,7 +40,8 @@ class MyOutput(Output):
 
         self.app.register_blueprint(blue_print)
         self.app.run() 
-         
+
+
     def dash_home(self):
 
         # Get demo code 
@@ -57,6 +64,7 @@ class MyOutput(Output):
         super().update(algorithm)
         self.x_mean.set(np.mean(algorithm.pop.get("X")))
         self.x_std.set(np.std(algorithm.pop.get("X")))
+        self.flask_thread.join()
 
 
 problem = get_problem("zdt2")
