@@ -50,7 +50,7 @@ class MyCallback(Callback):
         # Set up I/O buffer to save the image 
         buffer = io.BytesIO()
 
-        plt.fig.savefig(buffer, format='png', dpi=50)
+        plt.fig.savefig(buffer, format='png', dpi=100)
         buffer.seek(0)
 
         # Encode bytes
