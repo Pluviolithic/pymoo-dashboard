@@ -7,6 +7,7 @@ import threading
 import queue
 import time
 
+
 from pymoo.visualization.scatter import Scatter
 
 import matplotlib.pyplot as plt
@@ -30,34 +31,37 @@ class Dashboard(Callback):
         self.flask_thread = threading.Thread(target=self.start_server, daemon=True)
         self.flask_thread.start() 
 
+        self.visualizations = {
+            "scatter": Dashboard.plot_scatter
+                }
+
         print("Press enter to start optimization.")
         input() 
         
 
     def notify(self, algorithm):
+
+        # Record PO values 
         self.data["best"].append(algorithm.pop.get("F").min())
-      
+   
+        for v in self.visualizations: 
 
-        # Send PO update to client
-        F = algorithm.pop.get("F")
-        plt = Scatter().add(F).show()
+            plotter = self.visualizations[v]
 
-        # Set up I/O buffer to save the image 
-        buffer = io.BytesIO()
+            plt = plotter(algorithm)
 
-        plt.fig.savefig(buffer, format='png', dpi=100)
-        buffer.seek(0)
+            # Set up I/O buffer to save the image 
+            buffer = io.BytesIO()
 
-        # Encode bytes
-        plot_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+            plt.fig.savefig(buffer, format='png', dpi=100)
+            buffer.seek(0)
 
-        msg = self.format_sse(data=plot_base64)
-        self.announcer.announce(msg=msg)
+            # Encode bytes
+            plot_base64 = base64.b64encode(buffer.read()).decode('utf-8')
 
-        if algorithm.termination.has_terminated():
-
-            print("Press enter to exit")
-            input() 
+            msg = self.format_sse(plot_base64, v)
+            
+            self.announcer.announce(msg=msg)
 
 
     def start_server(self):
@@ -108,9 +112,17 @@ class Dashboard(Callback):
                 except queue.Full:
                     del self.listeners[i]
 
+    @staticmethod
+    def plot_scatter(algorithm):
+
+        # Send PO update to client
+        F = algorithm.pop.get("F")
+        plt = Scatter().add(F).show()
+   
+        return plt
 
     @staticmethod
-    def format_sse(data: str, event=None) -> str:
+    def format_sse(data: str, plot_title) -> str:
         """Formats a string and an event name in order to follow the event stream convention.
 
         >>> format_sse(data=json.dumps({'abc': 123}), event='Jackson 5')
@@ -118,9 +130,11 @@ class Dashboard(Callback):
 
         """
 
-        msg = f'data: {data}\n\n'
-        if event is not None:
-            msg = f'event: {event}\n{msg}'
+        payload = "{\"title\": \"%s\", \"image\": \"%s\"}" % (plot_title, data)
+
+
+        msg = f'data: {payload}\n\n'
+
         return msg
 
     @staticmethod
@@ -156,21 +170,22 @@ class Dashboard(Callback):
 const evtSource = new EventSource("listen");
 
 evtSource.onmessage = (event) => {
- 
+
+  data = JSON.parse(event.data)
 
   // Create image if it doesn't already exist 
   if(document.getElementById("graph-image")  === null){
 
     var imageElement = document.createElement('img');
 
-    imageElement.src = "data:image/gif; base64," + event.data
+    imageElement.src = "data:image/gif; base64," + data.image
 
     imageElement.id = "graph-image"
 
     document.getElementById("po-container").appendChild(imageElement)
 
   }else{
-    document.getElementById("graph-image").src = "data:image/gif; base64," + event.data
+    document.getElementById("graph-image").src = "data:image/gif; base64," + data.image
   }
 
 };
@@ -179,15 +194,16 @@ evtSource.onmessage = (event) => {
         return script
 
 
+if __name__ == "__main__": 
 
-problem = get_problem("zdt1")
+    problem = get_problem("zdt2")
 
-algorithm = NSGA2(pop_size=100)
+    algorithm = NSGA2(pop_size=100)
 
-res = minimize(problem,
-               algorithm,
-               ('n_gen', 200),
-               seed=1,
-               callback=Dashboard(),
-               verbose=True)
+    res = minimize(problem,
+                   algorithm,
+                   ('n_gen', 200),
+                   seed=1,
+                   callback=Dashboard(),
+                   verbose=True)
 
