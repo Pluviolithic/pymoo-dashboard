@@ -1,5 +1,5 @@
 from flask import Flask, Blueprint, Response
-from flask import render_template
+from flask import render_template_string
 import io
 import base64
 import asyncio
@@ -7,10 +7,7 @@ import threading
 import queue
 import time
 
-# TODO delete these eventually
 from pymoo.visualization.scatter import Scatter
-from pymoo.problems import get_problem
-# end delete these 
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,7 +19,7 @@ from pymoo.core.callback import Callback
 from pymoo.optimize import minimize
 
 
-class MyCallback(Callback):
+class Dashboard(Callback):
 
     def __init__(self) -> None:
         super().__init__()
@@ -41,9 +38,7 @@ class MyCallback(Callback):
         self.data["best"].append(algorithm.pop.get("F").min())
       
 
-        # Send test update to client
-        # Get demo code 
-        #F = get_problem("zdt3").pareto_front()
+        # Send PO update to client
         F = algorithm.pop.get("F")
         plt = Scatter().add(F).show()
 
@@ -91,7 +86,7 @@ class MyCallback(Callback):
     # Dashboard homepage
     def dash_home(self):
 
-        return render_template('app.html')
+        return render_template_string(self.dashboard_template())
 
 
     # SSE code taken from https://github.com/MaxHalford/flask-sse-no-deps
@@ -128,6 +123,61 @@ class MyCallback(Callback):
             msg = f'event: {event}\n{msg}'
         return msg
 
+    @staticmethod
+    def dashboard_template(): 
+        template = """
+        <!doctype html>
+
+        <html>
+
+          <head>
+            <script >
+              %s 
+            </script>
+          </head>
+
+          <body>
+            <title>Hello from Flask</title>
+            <h1>Hello, Pymoo!</h1>
+
+            <div id="po-container"></div>
+
+          </body>
+
+        </html>
+        """ % Dashboard.dashboard_js()
+
+        return template
+
+    @staticmethod
+    def dashboard_js(): 
+        script = """
+
+const evtSource = new EventSource("listen");
+
+evtSource.onmessage = (event) => {
+ 
+
+  // Create image if it doesn't already exist 
+  if(document.getElementById("graph-image")  === null){
+
+    var imageElement = document.createElement('img');
+
+    imageElement.src = "data:image/gif; base64," + event.data
+
+    imageElement.id = "graph-image"
+
+    document.getElementById("po-container").appendChild(imageElement)
+
+  }else{
+    document.getElementById("graph-image").src = "data:image/gif; base64," + event.data
+  }
+
+};
+        """
+
+        return script
+
 
 
 problem = get_problem("zdt1")
@@ -138,6 +188,6 @@ res = minimize(problem,
                algorithm,
                ('n_gen', 200),
                seed=1,
-               callback=MyCallback(),
+               callback=Dashboard(),
                verbose=True)
 
