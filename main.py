@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from pymoo.algorithms.soo.nonconvex.ga import GA
+from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.problems import get_problem
 from pymoo.core.callback import Callback
 from pymoo.optimize import minimize
@@ -49,7 +50,7 @@ class MyCallback(Callback):
         # Set up I/O buffer to save the image 
         buffer = io.BytesIO()
 
-        plt.fig.savefig(buffer, format='png', dpi=300)
+        plt.fig.savefig(buffer, format='png', dpi=50)
         buffer.seek(0)
 
         # Encode bytes
@@ -93,8 +94,6 @@ class MyCallback(Callback):
         return render_template('app.html')
 
 
-
-
     # SSE code taken from https://github.com/MaxHalford/flask-sse-no-deps
     class MessageAnnouncer:
 
@@ -131,9 +130,9 @@ class MyCallback(Callback):
 
 
 
-problem = get_problem("sphere")
+problem = get_problem("zdt1")
 
-algorithm = GA(pop_size=100)
+algorithm = NSGA2(pop_size=100)
 
 res = minimize(problem,
                algorithm,
