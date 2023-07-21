@@ -9,6 +9,7 @@ import time
 
 
 from pymoo.visualization.scatter import Scatter
+from pymoo.visualization.pcp import PCP
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -32,7 +33,8 @@ class Dashboard(Callback):
         self.flask_thread.start() 
 
         self.visualizations = {
-            "scatter": Dashboard.plot_scatter
+            "scatter": Dashboard.plot_scatter,
+            "pcp": Dashboard.plot_pcp
                 }
 
         print("Press enter to start optimization.")
@@ -53,7 +55,7 @@ class Dashboard(Callback):
             # Set up I/O buffer to save the image 
             buffer = io.BytesIO()
 
-            plt.fig.savefig(buffer, format='png', dpi=100)
+            plt.fig.savefig(buffer, format='png', dpi=50)
             buffer.seek(0)
 
             # Encode bytes
@@ -121,6 +123,18 @@ class Dashboard(Callback):
    
         return plt
 
+
+    @staticmethod
+    def plot_pcp(algorithm):
+
+        # Send PO update to client
+        F = algorithm.pop.get("F")
+        plt = PCP().add(F).show()
+   
+        return plt
+
+    
+
     @staticmethod
     def format_sse(data: str, plot_title) -> str:
         """Formats a string and an event name in order to follow the event stream convention.
@@ -154,7 +168,7 @@ class Dashboard(Callback):
             <title>Hello from Flask</title>
             <h1>Hello, Pymoo!</h1>
 
-            <div id="po-container"></div>
+            <div id="plot-container"></div>
 
           </body>
 
@@ -173,19 +187,35 @@ evtSource.onmessage = (event) => {
 
   data = JSON.parse(event.data)
 
+  title = data.title
+
   // Create image if it doesn't already exist 
-  if(document.getElementById("graph-image")  === null){
+  if(document.getElementById("graph-image-" + title)  === null){
 
+    // Image wrapper 
+    var wrapperElement = document.createElement('div')
+    wrapperElement.id = "plot-wrapper-" + title
+
+    // Image element
     var imageElement = document.createElement('img');
-
     imageElement.src = "data:image/gif; base64," + data.image
+    imageElement.id = "graph-image-" + title
 
-    imageElement.id = "graph-image"
+    // Title element 
+    var header = document.createElement('h2');
+    var headerContent = document.createTextNode(title);
+    header.appendChild(headerContent);
 
-    document.getElementById("po-container").appendChild(imageElement)
+    // insert data into documeent
+    document.getElementById("plot-container").appendChild(wrapperElement)
+    document.getElementById("plot-wrapper-" + title).appendChild(header)
+    document.getElementById("plot-wrapper-" + title).appendChild(imageElement)
+
+
+
 
   }else{
-    document.getElementById("graph-image").src = "data:image/gif; base64," + data.image
+    document.getElementById("graph-image-" + title).src = "data:image/gif; base64," + data.image
   }
 
 };
