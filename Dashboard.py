@@ -33,8 +33,8 @@ class Dashboard(Callback):
         self.flask_thread.start() 
 
         self.visualizations = {
-            "scatter": Dashboard.plot_scatter,
-            "pcp": Dashboard.plot_pcp
+            "Pareto Front Scatter Plot": Dashboard.plot_scatter,
+            "PCP Plot": Dashboard.plot_pcp
                 }
 
         print("Press enter to start optimization.")
@@ -156,7 +156,7 @@ class Dashboard(Callback):
     
         template = Dashboard.read_source_file("Dashboard.html")        
 
-        template = template % Dashboard.dashboard_js()
+        template = template % (Dashboard.dashboard_js(), Dashboard.dashboard_css())
 
         return template
 
@@ -168,23 +168,21 @@ class Dashboard(Callback):
         return script
 
     @staticmethod
+    def dashboard_css(): 
+
+        script = Dashboard.read_source_file("Dashboard.css")
+
+        return script
+
+
+    @staticmethod
     def read_source_file(file_path): 
 
-        try:
-            # Open the file in read mode
-            with open(file_path, 'r') as file:
-                # Step 2: Read the content of the file and store it in a string
-                file_content = file.read()
+        with open(file_path, 'r') as file:
+        
+            file_content = file.read()
 
-            # File is automatically closed after the 'with' block
-            return file_content
-
-        except FileNotFoundError:
-            print(f"Error: The file '{file_path}' was not found.")
-            return None
-        except IOError:
-            print(f"Error: There was an I/O error while reading the file '{file_path}'.")
-            return None
+        return file_content
 
 
 
