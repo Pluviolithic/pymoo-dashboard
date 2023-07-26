@@ -6,7 +6,7 @@ import asyncio
 import threading
 import queue
 import time
-
+import json
 
 from pymoo.visualization.scatter import Scatter
 from pymoo.visualization.pcp import PCP
@@ -37,6 +37,8 @@ class Dashboard(Callback):
             "PCP Plot": Dashboard.plot_pcp
                 }
 
+        self.overview_fields = ['algorithm', 'problem', 'generation', 'seed', 'pop_size']
+
         print("Press enter to start optimization.")
         input() 
         
@@ -45,7 +47,19 @@ class Dashboard(Callback):
 
         # Record PO values 
         self.data["best"].append(algorithm.pop.get("F").min())
-   
+ 
+        overview_dict = {}
+
+        for o in self.overview_fields:
+
+            overview_func =  getattr(self, "overview_" + o)
+
+            overview_dict[o] = overview_func(algorithm)
+
+        msg = self.format_sse(overview_dict, "Overview")
+
+        self.announcer.announce(msg=msg)
+
         for v in self.visualizations: 
 
             plotter = self.visualizations[v]
@@ -136,7 +150,7 @@ class Dashboard(Callback):
     
 
     @staticmethod
-    def format_sse(data: str, plot_title) -> str:
+    def format_sse(content, plot_title) -> str:
         """Formats a string and an event name in order to follow the event stream convention.
 
         >>> format_sse(data=json.dumps({'abc': 123}), event='Jackson 5')
@@ -144,7 +158,12 @@ class Dashboard(Callback):
 
         """
 
-        payload = "{\"title\": \"%s\", \"image\": \"%s\"}" % (plot_title, data)
+        if isinstance(content, dict):
+            payload = "{\"title\": \"%s\", \"content\": %s}" % (plot_title, json.dumps(content))
+        elif isinstance(content, str): 
+            payload = "{\"title\": \"%s\", \"content\": \"%s\"}" % (plot_title, content)
+        else: 
+            raise TypeError("Wrong data given to format_sse")
 
 
         msg = f'data: {payload}\n\n'
@@ -184,7 +203,27 @@ class Dashboard(Callback):
 
         return file_content
 
+    # Overview functions
+    @staticmethod
+    def overview_problem(algorithm):
+        return type(algorithm.problem).__name__
 
+
+    @staticmethod
+    def overview_algorithm(algorithm):
+        return type(algorithm).__name__
+
+    @staticmethod
+    def overview_generation(algorithm):
+        return algorithm.n_gen
+
+    @staticmethod
+    def overview_seed(algorithm):
+        return algorithm.seed
+
+    @staticmethod
+    def overview_pop_size(algorithm):
+        return len(algorithm.pop)
 
 if __name__ == "__main__": 
 
