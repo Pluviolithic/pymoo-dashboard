@@ -19,13 +19,14 @@ from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.problems import get_problem
 from pymoo.core.callback import Callback
 from pymoo.optimize import minimize
+from pymoo.indicators.hv import Hypervolume
 
 
 class Dashboard(Callback):
 
     def __init__(self) -> None:
         super().__init__()
-        self.data["best"] = []
+        self.data["HV"] = []
 
         self.announcer = self.MessageAnnouncer()    
 
@@ -33,9 +34,13 @@ class Dashboard(Callback):
         self.flask_thread.start() 
 
         self.visualizations = {
-            "Pareto Front Scatter Plot": Dashboard.plot_scatter,
-            "PCP Plot": Dashboard.plot_pcp
+            "HV": self.plot_hv,
+            "Pareto Front Scatter Plot": self.plot_scatter,
+            "PCP Plot": self.plot_pcp
                 }
+
+        # Initially chosen HV point
+        self.hv_ref_point  =  np.array([1, 1])
 
         self.overview_fields = ['algorithm', 'problem', 'generation', 'seed', 'pop_size']
 
@@ -45,9 +50,18 @@ class Dashboard(Callback):
 
     def notify(self, algorithm):
 
-        # Record PO values 
-        self.data["best"].append(algorithm.pop.get("F").min())
- 
+        ## Book keeping
+
+        # PO values 
+        pf = algorithm.pop.get("F")
+
+        # HV values 
+        hv_indicator = Hypervolume(ref_point=self.hv_ref_point)
+        self.data["HV"].append(hv_indicator.do(pf))
+
+
+        ## Overview table
+        # Build the data for the overview table
         overview_dict = {}
 
         for o in self.overview_fields:
@@ -58,18 +72,21 @@ class Dashboard(Callback):
 
         msg = self.format_sse(overview_dict, "Overview")
 
+        # Send off overview table
         self.announcer.announce(msg=msg)
 
+        
+        ## Dashboard tables
         for v in self.visualizations: 
 
             plotter = self.visualizations[v]
 
-            plt = plotter(algorithm)
+            fig = plotter(algorithm)
 
             # Set up I/O buffer to save the image 
             buffer = io.BytesIO()
 
-            plt.fig.savefig(buffer, format='png', dpi=50)
+            fig.savefig(buffer, format='png', dpi=50)
             buffer.seek(0)
 
             # Encode bytes
@@ -128,26 +145,6 @@ class Dashboard(Callback):
                 except queue.Full:
                     del self.listeners[i]
 
-    @staticmethod
-    def plot_scatter(algorithm):
-
-        # Send PO update to client
-        F = algorithm.pop.get("F")
-        plt = Scatter().add(F).show()
-   
-        return plt
-
-
-    @staticmethod
-    def plot_pcp(algorithm):
-
-        # Send PO update to client
-        F = algorithm.pop.get("F")
-        plt = PCP().add(F).show()
-   
-        return plt
-
-    
 
     @staticmethod
     def format_sse(content, plot_title) -> str:
@@ -203,11 +200,41 @@ class Dashboard(Callback):
 
         return file_content
 
-    # Overview functions
+    ## Dashboard plots
+    def plot_scatter(self, algorithm):
+
+        # Send PO update to client
+        F = algorithm.pop.get("F")
+        plot = Scatter().add(F).show()
+   
+        return plot.fig
+
+
+    def plot_pcp(self, algorithm):
+
+        # Send PO update to client
+        F = algorithm.pop.get("F")
+        plot = PCP().add(F).show()
+   
+        return plot.fig
+
+
+    def plot_hv(self, algorithm):
+
+        # Send PO update to client
+        hv_series = self.data["HV"]
+        gen_series = list(range(len(hv_series)))
+
+        plt.figure(figsize=(7,7))
+        plt.plot(gen_series, hv_series)
+        plot = plt.gcf() 
+
+        return plot
+        
+    ## Overview functions
     @staticmethod
     def overview_problem(algorithm):
         return type(algorithm.problem).__name__
-
 
     @staticmethod
     def overview_algorithm(algorithm):
