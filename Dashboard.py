@@ -7,6 +7,7 @@ import threading
 import queue
 import time
 import json
+import inspect
 
 from pymoo.visualization.scatter import Scatter
 from pymoo.visualization.pcp import PCP
@@ -169,8 +170,11 @@ class Dashboard(Callback):
 
     @staticmethod
     def dashboard_template(): 
-    
-        template = Dashboard.read_source_file("Dashboard.html")        
+   
+        source_path = inspect.getfile(Dashboard)          
+        source_path = source_path[0:-2] + "html"
+
+        template = Dashboard.read_source_file(source_path)        
 
         template = template % (Dashboard.dashboard_js(), Dashboard.dashboard_css())
 
@@ -179,14 +183,20 @@ class Dashboard(Callback):
     @staticmethod
     def dashboard_js(): 
 
-        script = Dashboard.read_source_file("Dashboard.js")        
+        source_path = inspect.getfile(Dashboard)          
+        source_path = source_path[0:-2] + "js"
+
+        script = Dashboard.read_source_file(source_path)        
 
         return script
 
     @staticmethod
     def dashboard_css(): 
 
-        script = Dashboard.read_source_file("Dashboard.css")
+        source_path = inspect.getfile(Dashboard)          
+        source_path = source_path[0:-2] + "css"
+
+        script = Dashboard.read_source_file(source_path)
 
         return script
 
