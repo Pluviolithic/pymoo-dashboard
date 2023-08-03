@@ -54,7 +54,7 @@ class Dashboard(Callback):
         if algorithm.n_gen == 1: 
 
             # Initially chosen HV point
-            self.hv_ref_point  =  np.array([1 for a in range(algorithm.problem.n_obj)])
+            self.hv_ref_point  =  algorithm.problem.nadir_point()
 
 
         ## Book keeping
