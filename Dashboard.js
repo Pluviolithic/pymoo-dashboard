@@ -39,15 +39,23 @@ evtSource.onmessage = (event) => {
   if(title == "Overview"){
 
     var tableContent = data.content
+    
+    var tabWrapper = document.getElementById("overview-tab-wrapper") 
 
     if(document.getElementById("overview-tab")  !== null){
       document.getElementById("overview-tab").remove()
+    }else{
+      var header = document.createElement('h2');
+      var headerContent = document.createTextNode("Overview");
+      header.appendChild(headerContent)
+      tabWrapper.appendChild(header)
     }
 
+
+
     tableElement = overview2htmltab(tableContent)
-    
-    var tabWrapper = document.getElementById("overview-tab-wrapper") 
-    
+   
+
     tabWrapper.appendChild(tableElement)
 
 
@@ -59,6 +67,7 @@ evtSource.onmessage = (event) => {
       // Image wrapper 
       var wrapperElement = document.createElement('div')
       wrapperElement.id = "plot-wrapper-" + title
+      wrapperElement.classList.add("widget")
 
       // Image element
       var imageElement = document.createElement('img');
@@ -70,10 +79,12 @@ evtSource.onmessage = (event) => {
       var headerContent = document.createTextNode(title);
       header.appendChild(headerContent);
 
-      // insert data into document
-      document.getElementById("plot-container").appendChild(wrapperElement)
+      // Insert data into document
+      document.getElementById("widget-wrapper").appendChild(wrapperElement)
       document.getElementById("plot-wrapper-" + title).appendChild(header)
       document.getElementById("plot-wrapper-" + title).appendChild(imageElement)
+
+      
 
     }else{
       document.getElementById("graph-image-" + title).src = "data:image/gif; base64," + data.content

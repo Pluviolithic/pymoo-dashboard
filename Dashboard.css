@@ -1,8 +1,22 @@
 
+html {
+  font-family: Open Sans,sans-serif;
+}
+
+h1 {
+  font-size: 3rem;
+}
+
+h2 {
+  text-align: center; 
+}
+
 .page-wrapper{
-  max-width: 50rem;
+  max-width: calc(100% - 5rem);
+  padding: 5rem;
   margin: auto;
-     
+  background-color: #e8e8e8;
+
 }
 
 #overview-tab, .overview-tab-r, .overview-tab-r > td  {
@@ -18,5 +32,26 @@
 .overview-tab-r > td {
   padding: 0.4rem;  
 }
+
+
+#widget-wrapper {
+  display: flex;
+  flex-direction: row; 
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.widget {
+  width: 20rem;
+  padding: 2rem;
+  box-shadow: 5px 5px #c6c6c6;
+  background-color: white;
+  margin: 2rem 0 2rem 0;
+}
+
+.widget > img {
+  width: 100%;
+}
+
 
 
