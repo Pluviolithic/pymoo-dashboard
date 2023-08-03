@@ -17,11 +17,12 @@ import numpy as np
 
 from pymoo.algorithms.soo.nonconvex.ga import GA
 from pymoo.algorithms.moo.nsga2 import NSGA2
+from pymoo.algorithms.moo.nsga3 import NSGA3
 from pymoo.problems import get_problem
 from pymoo.core.callback import Callback
 from pymoo.optimize import minimize
 from pymoo.indicators.hv import Hypervolume
-
+from pymoo.util.ref_dirs import get_reference_directions
 
 class Dashboard(Callback):
 
@@ -40,8 +41,6 @@ class Dashboard(Callback):
             "PCP Plot": self.plot_pcp
                 }
 
-        # Initially chosen HV point
-        self.hv_ref_point  =  np.array([1, 1])
 
         self.overview_fields = ['algorithm', 'problem', 'generation', 'seed', 'pop_size']
 
@@ -50,6 +49,13 @@ class Dashboard(Callback):
         
 
     def notify(self, algorithm):
+
+        ## Initialization (if first gen)
+        if algorithm.n_gen == 1: 
+
+            # Initially chosen HV point
+            self.hv_ref_point  =  np.array([1 for a in range(algorithm.problem.n_obj)])
+
 
         ## Book keeping
 
@@ -264,14 +270,32 @@ class Dashboard(Callback):
 
 if __name__ == "__main__": 
 
-    problem = get_problem("zdt2")
+    # 2 dimension example 
+    #problem = get_problem("zdt2")
 
-    algorithm = NSGA2(pop_size=100)
+    #algorithm = NSGA2(pop_size=100)
 
-    res = minimize(problem,
+    #res = minimize(problem,
+    #               algorithm,
+    #               ('n_gen', 200),
+    #               seed=1,
+    #               callback=Dashboard(),
+    #               verbose=True)
+
+        
+    # create the reference directions to be used for the optimization
+    ref_dirs = get_reference_directions("das-dennis", 3, n_partitions=12)
+
+    # create the algorithm object
+    algorithm = NSGA3(pop_size=92,
+                      ref_dirs=ref_dirs)
+
+    # execute the optimization
+    res = minimize(get_problem("dtlz1"),
                    algorithm,
-                   ('n_gen', 200),
                    seed=1,
                    callback=Dashboard(),
-                   verbose=True)
+                   termination=('n_gen', 600))
+        
+    
 
