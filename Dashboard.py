@@ -50,17 +50,15 @@ class Dashboard(Callback):
 
     def notify(self, algorithm):
 
-        ## Initialization (if first gen)
-        if algorithm.n_gen == 1: 
-
-            # Initially chosen HV point
-            self.hv_ref_point  =  algorithm.problem.nadir_point()
-
-
         ## Book keeping
 
         # PO values 
         pf = algorithm.pop.get("F")
+
+        # HV reference point 
+        self.hv_ref_point = algorithm.problem.nadir_point()
+        if  self.hv_ref_point is None: 
+            self.hv_ref_point = [1 for a in range(algorithm.problem.n_obj)]
 
         # HV values 
         hv_indicator = Hypervolume(ref_point=self.hv_ref_point)
@@ -293,7 +291,7 @@ if __name__ == "__main__":
     # execute the optimization
     res = minimize(get_problem("dtlz1"),
                    algorithm,
-                   seed=1,
+                   seed=2018194,
                    callback=Dashboard(),
                    termination=('n_gen', 600))
         
