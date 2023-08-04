@@ -37,12 +37,18 @@
         <div 
           class="widget"
           v-for="(imageContent, title) in imageWidgets" 
-          v-bind:id="'plot-wrapper-' + slugify(title)">
+          v-bind:id="'plot-wrapper-' + slugify(title)"
+          @click="highlightWidget(title)"
+          :class="{highlighted : widgetIsHighlighted(title)}"
+          >
 
-          <h2>{{title}}</h2>
+          <h2>
+            {{title}}
+          </h2>
           <img 
             v-bind:src="'data:image/gif; base64,' + imageContent"
-            v-bind:id="'graph-image-' + slugify(title)"> </img>
+            v-bind:id="'graph-image-' + slugify(title)"
+            > </img>
         </div>
 
       </div>

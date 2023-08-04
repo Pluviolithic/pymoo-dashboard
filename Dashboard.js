@@ -6,7 +6,8 @@ createApp({
   data(){
     return {
       imageWidgets : { }, 
-      tableWidgets : { }
+      tableWidgets : { },
+      highlightedWidget : ""
     }
   }, 
   // Created hook 
@@ -25,7 +26,7 @@ createApp({
       } else {
         this.imageWidgets[title] = data.content
       }
-    
+
     };
 
   },
@@ -33,7 +34,17 @@ createApp({
   methods : {
     slugify(str){
      return str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
+    }, 
+    highlightWidget(title){
+      this.highlightedWidget = title;
+    },
+    widgetIsHighlighted(title){
+      return title === this.highlightedWidget
     }
+
   }
+
+  
+
 }).mount('#app');
 
