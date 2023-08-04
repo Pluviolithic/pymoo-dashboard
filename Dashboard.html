@@ -2,21 +2,24 @@
 <html>
 
   <head>
-    <script >
-      %s 
-    </script>
     <style>
       %s
     </style>
+    <script src="https://unpkg.com/vue@next"></script>
+
+    <script type="module">
+      %s 
+    </script>
     <title>Hello from Flask</title>
   </head>
 
   <body>
 
-    <div class="page-wrapper">
+    <div id="app" class="page-wrapper">
+      <h1>{{ message }}</h1>
+      <p>Count is: {{ counter.count }}</p>
 
       <h1>pymoo Dashboard</h1>
-
       <div id="widget-wrapper">
         <div id="overview-tab-wrapper" class="widget"></div>
 
@@ -24,10 +27,14 @@
 
 
       <div id="plot-container"></div>
+    </div> 
 
-    </div>
 
 
+    <!--<script type="module" >
+    </script>-->
+
+      
   </body>
 
 </html>
