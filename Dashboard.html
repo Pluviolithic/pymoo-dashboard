@@ -20,6 +20,7 @@
       <h1>pymoo Dashboard</h1>
       {{tableWidgets.size}}
       <div id="widget-wrapper">
+        <!-- Table widgets -->
         <div v-for="(tableContent, title) in tableWidgets" id="overview-tab-wrapper" class="widget">
           <h2>
             {{title}}
@@ -32,9 +33,20 @@
           </table>
         </div>
 
+        <!-- Image widgets --> 
+        <div 
+          class="widget"
+          v-for="(imageContent, title) in imageWidgets" 
+          v-bind:id="'plot-wrapper-' + slugify(title)">
+
+          <h2>{{title}}</h2>
+          <img 
+            v-bind:src="'data:image/gif; base64,' + imageContent"
+            v-bind:id="'graph-image-' + slugify(title)"> </img>
+        </div>
+
       </div>
 
-      <div id="plot-container"></div>
     </div> 
       
   </body>
