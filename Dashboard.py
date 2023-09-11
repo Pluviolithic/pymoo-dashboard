@@ -219,8 +219,9 @@ class Dashboard(Callback):
 
         # Send PO update to client
         F = algorithm.pop.get("F")
-        plot = Scatter().add(F).show()
-   
+        plot = Scatter().add(F)
+        plot.plot_if_not_done_yet()
+
         return plot.fig
 
 
@@ -228,7 +229,8 @@ class Dashboard(Callback):
 
         # Send PO update to client
         F = algorithm.pop.get("F")
-        plot = PCP().add(F).show()
+        plot = PCP().add(F)
+        plot.plot_if_not_done_yet()
    
         return plot.fig
 
