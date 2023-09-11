@@ -128,7 +128,7 @@ class Dashboard(Callback):
     # Dashboard homepage
     def dash_home(self):
 
-        return render_template_string(self.dashboard_template())
+        return self.dashboard_template()
 
 
     # SSE code taken from https://github.com/MaxHalford/flask-sse-no-deps
@@ -180,7 +180,7 @@ class Dashboard(Callback):
 
         template = Dashboard.read_source_file(source_path)        
 
-        template = template % (Dashboard.dashboard_js(), Dashboard.dashboard_css())
+        template = template % (Dashboard.dashboard_css(), Dashboard.dashboard_js())
 
         return template
 
@@ -219,8 +219,9 @@ class Dashboard(Callback):
 
         # Send PO update to client
         F = algorithm.pop.get("F")
-        plot = Scatter().add(F).show()
-   
+        plot = Scatter().add(F)
+        plot.plot_if_not_done_yet()
+
         return plot.fig
 
 
@@ -228,7 +229,8 @@ class Dashboard(Callback):
 
         # Send PO update to client
         F = algorithm.pop.get("F")
-        plot = PCP().add(F).show()
+        plot = PCP().add(F)
+        plot.plot_if_not_done_yet()
    
         return plot.fig
 
