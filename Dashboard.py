@@ -7,7 +7,7 @@ import threading
 import queue
 import time
 import json
-import inspect
+import inspect, webbrowser
 
 from pymoo.visualization.scatter import Scatter
 from pymoo.visualization.pcp import PCP
@@ -26,7 +26,9 @@ from pymoo.util.ref_dirs import get_reference_directions
 
 class Dashboard(Callback):
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, 
+                 open_browser=True,
+                 **kwargs) -> None:
 
         super().__init__()
 
@@ -36,6 +38,11 @@ class Dashboard(Callback):
 
         self.flask_thread = threading.Thread(target=self.start_server, daemon=True)
         self.flask_thread.start() 
+
+        url = "localhost:5000"
+    
+        if open_browser:
+            threading.Timer(1.25, lambda: webbrowser.open(url) ).start()
 
         # Default visualizations + user defined ones
         self.visualizations = dict({
