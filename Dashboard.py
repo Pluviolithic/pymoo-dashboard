@@ -1,6 +1,7 @@
 from flask import Flask, Blueprint, Response
 from flask import render_template_string
 import io
+import os
 import base64
 import asyncio
 import threading
@@ -28,6 +29,7 @@ class Dashboard(Callback):
 
     def __init__(self, 
                  open_browser=True,
+                 develop=False,
                  **kwargs) -> None:
 
         super().__init__()
@@ -38,8 +40,16 @@ class Dashboard(Callback):
 
         self.flask_thread = threading.Thread(target=self.start_server, daemon=True)
         self.flask_thread.start() 
+    
+        self.develop = develop
 
-        url = "localhost:5000"
+        url = "localhost"
+        if develop: 
+            url += ":3000"
+            self.develop_thread = threading.Thread(target=self.start_dev_server)  
+            self.develop_thread.start()
+        else: 
+            url += ":5000"
     
         if open_browser:
             threading.Timer(1.25, lambda: webbrowser.open(url) ).start()
@@ -57,7 +67,15 @@ class Dashboard(Callback):
 
 
         self.overview_fields = ['algorithm', 'problem', 'generation', 'seed', 'pop_size']
+    
+    def start_dev_server(self): 
         
+        # Go to the path "nuxt-module"
+        os.chdir("nuxt-module")
+
+        # Run the development server
+        os.system("npm run dev")
+
 
     def notify(self, algorithm):
 
@@ -310,7 +328,7 @@ if __name__ == "__main__":
     res = minimize(get_problem("dtlz1"),
                    algorithm,
                    seed=2018194,
-                   callback=Dashboard(),
+                   callback=Dashboard(develop=True),
                    termination=('n_gen', 600))
         
     
