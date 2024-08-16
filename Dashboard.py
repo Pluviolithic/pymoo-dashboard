@@ -71,7 +71,7 @@ class Dashboard(Callback):
     def start_dev_server(self): 
         
         # Go to the path "nuxt-module"
-        os.chdir("nuxt-module")
+        os.chdir("frontend")
 
         # Run the development server
         os.system("npm run dev")
