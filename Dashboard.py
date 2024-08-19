@@ -1,4 +1,4 @@
-from flask import Flask, Blueprint, Response
+from flask import Flask, Blueprint, Response, send_from_directory
 from flask import render_template_string
 import io
 import os
@@ -138,8 +138,24 @@ class Dashboard(Callback):
         self.app = Flask(__name__)        
 
         blue_print = Blueprint('blue_print', __name__)
-        blue_print.add_url_rule('/', view_func=self.dash_home)
+
         blue_print.add_url_rule('/listen', view_func=self.listen)
+   
+
+        # / should be routed to the file Dashboard/index.html
+        @self.app.route('/')
+        def serve_dashboard():
+            return render_template_string(self.dashboard_template())
+
+
+
+
+        # Add a route to serve  the Nuxt app
+        @self.app.route('/<path:filename>')
+        def serve_static(filename):
+            # Serve the file from the static directory
+            return send_from_directory(os.path.join(os.getcwd(), 'Dashboard'), filename)
+    
 
         self.app.register_blueprint(blue_print)
         self.app.run() 
@@ -160,6 +176,7 @@ class Dashboard(Callback):
     def dash_home(self):
 
         return self.dashboard_template()
+
 
 
     # SSE code taken from https://github.com/MaxHalford/flask-sse-no-deps
@@ -207,33 +224,13 @@ class Dashboard(Callback):
     def dashboard_template(): 
    
         source_path = inspect.getfile(Dashboard)          
-        source_path = source_path[0:-2] + "html"
+        source_path = source_path[0:-3] + "/index.html"
 
         template = Dashboard.read_source_file(source_path)        
 
-        template = template % (Dashboard.dashboard_css(), Dashboard.dashboard_js())
-
         return template
 
-    @staticmethod
-    def dashboard_js(): 
 
-        source_path = inspect.getfile(Dashboard)          
-        source_path = source_path[0:-2] + "js"
-
-        script = Dashboard.read_source_file(source_path)        
-
-        return script
-
-    @staticmethod
-    def dashboard_css(): 
-
-        source_path = inspect.getfile(Dashboard)          
-        source_path = source_path[0:-2] + "css"
-
-        script = Dashboard.read_source_file(source_path)
-
-        return script
 
 
     @staticmethod
@@ -328,7 +325,7 @@ if __name__ == "__main__":
     res = minimize(get_problem("dtlz1"),
                    algorithm,
                    seed=2018194,
-                   callback=Dashboard(develop=True),
+                   callback=Dashboard(develop=False),
                    termination=('n_gen', 600))
         
     
