@@ -5,7 +5,7 @@ export default defineNuxtConfig({
 
   nitro: {
     routeRules: {
-      '/listen': { proxy: 'http://localhost:5000' }
+      '/listen': { proxy: 'http://localhost:5000/listen'}
     }
   }
 })

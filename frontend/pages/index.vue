@@ -40,6 +40,9 @@
 
 import { useEventSource } from '@vueuse/core'
 
+import VueSSE from 'vue-sse';
+
+
 export default {
   components: {
   },
@@ -53,21 +56,23 @@ export default {
   // Created hook 
   created(){
 
-    const evtSource = useEventSource("listen");
+    //const evtSource = useEventSource("listen");
     
-    evtSource.onmessage = (event) => {
-    
-      let data = JSON.parse(event.data)
-    
-      let title = data.title
-    
-      if(title == "Overview"){
-        this.tableWidgets["Overview"] = data.content
-      } else {
-        this.imageWidgets[title] = data.content
-      }
+    //console.log("HI") 
+    //evtSource.onmessage = (event) => {
 
-    };
+    //  console.log("I've got something!") 
+    //  let data = JSON.parse(event.data)
+    //
+    //  let title = data.title
+    //
+    //  if(title == "Overview"){
+    //    this.tableWidgets["Overview"] = data.content
+    //  } else {
+    //    this.imageWidgets[title] = data.content
+    //  }
+
+    //};
 
   },
   methods: {
