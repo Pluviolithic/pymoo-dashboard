@@ -230,9 +230,6 @@ class Dashboard(Callback):
 
         return template
 
-
-
-
     @staticmethod
     def read_source_file(file_path): 
 
@@ -301,6 +298,7 @@ class Dashboard(Callback):
 
 if __name__ == "__main__": 
 
+
     # 2 dimension example 
     #problem = get_problem("zdt2")
 
@@ -325,7 +323,7 @@ if __name__ == "__main__":
     res = minimize(get_problem("dtlz1"),
                    algorithm,
                    seed=2018194,
-                   callback=Dashboard(develop=False),
+                   callback=Dashboard(develop=True),
                    termination=('n_gen', 600))
         
     
