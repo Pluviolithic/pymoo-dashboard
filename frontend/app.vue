@@ -38,10 +38,7 @@
 
 <script>
 
-import { useEventSource } from '@vueuse/core'
-
-import VueSSE from 'vue-sse';
-
+import { createApp } from 'vue'
 
 export default {
   components: {
@@ -54,25 +51,27 @@ export default {
     }
   },
   // Created hook 
-  created(){
+  mounted(){
 
-    //const evtSource = useEventSource("listen");
-    
-    //console.log("HI") 
-    //evtSource.onmessage = (event) => {
+    this.$sse.create('/listen')
+      .on('message', (message) => {
 
-    //  console.log("I've got something!") 
-    //  let data = JSON.parse(event.data)
-    //
-    //  let title = data.title
-    //
-    //  if(title == "Overview"){
-    //    this.tableWidgets["Overview"] = data.content
-    //  } else {
-    //    this.imageWidgets[title] = data.content
-    //  }
+            console.log("I've got something!") 
+            let data = JSON.parse(message)
+          
+            let title = data.title
+          
+            if(title == "Overview"){
+              this.tableWidgets["Overview"] = data.content
+            } else {
+              this.imageWidgets[title] = data.content
+            }
 
-    //};
+          })
+      .on('error', (err) => console.error('Failed to parse or lost connection:', err))
+      .connect()
+      .catch((err) => console.error('Failed make initial connection:', err));
+
 
   },
   methods: {
