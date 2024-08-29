@@ -2,23 +2,37 @@
 
 _A tool to display live visualizations of your pymoo projects in real time_
 
-## Install for development
+## Development Setup
 
-As of right now, this project uses Flask as the HTTP server. I plan on 
-migrating to the default Python HTTP server to remove the flask 
-dependency.
+### Python requirements
+You will need to install Python (and preferably Anaconda). Once your environment is set up, you will need to run:
 
 ```shell
 pip install pymoo Flask 
 ```
 
+### Node requirements
+This project uses Node, Nuxt, and Vue to build its front end UI. So to start: 
+1. Install Node.js
+2. Enter the front end directory `cd frontend`
+3. Run `npm install`
+
 ## Running for development
 
+The following command will run a sample optimization problem.
 ```
 python Dashboard.py
 ```
 
-## Integrating into Pymoo projects 
+
+## Building the project
+For Unix based OSes
+```
+./build.sh
+```
+
+
+## Deploying to pymoo
 
 Simply set the Pymoo callback function as `Dashboard()` and you're good to go. 
 Make sure the `Dashboard.html`, `Dashboard.js`, and `Dashboard.css` are all in the 

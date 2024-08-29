@@ -1,13 +1,14 @@
-from flask import Flask, Blueprint, Response
+from flask import Flask, Blueprint, Response, send_from_directory
 from flask import render_template_string
 import io
+import os
 import base64
 import asyncio
 import threading
 import queue
 import time
 import json
-import inspect
+import inspect, webbrowser
 
 from pymoo.visualization.scatter import Scatter
 from pymoo.visualization.pcp import PCP
@@ -26,7 +27,10 @@ from pymoo.util.ref_dirs import get_reference_directions
 
 class Dashboard(Callback):
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, 
+                 open_browser=True,
+                 develop=False,
+                 **kwargs) -> None:
 
         super().__init__()
 
@@ -36,6 +40,19 @@ class Dashboard(Callback):
 
         self.flask_thread = threading.Thread(target=self.start_server, daemon=True)
         self.flask_thread.start() 
+    
+        self.develop = develop
+
+        url = "localhost"
+        if develop: 
+            url += ":3000"
+            self.develop_thread = threading.Thread(target=self.start_dev_server)  
+            self.develop_thread.start()
+        else: 
+            url += ":5000"
+    
+        if open_browser:
+            threading.Timer(1.25, lambda: webbrowser.open(url) ).start()
 
         # Default visualizations + user defined ones
         self.visualizations = dict({
@@ -50,7 +67,15 @@ class Dashboard(Callback):
 
 
         self.overview_fields = ['algorithm', 'problem', 'generation', 'seed', 'pop_size']
+    
+    def start_dev_server(self): 
         
+        # Go to the path "nuxt-module"
+        os.chdir("frontend")
+
+        # Run the development server
+        os.system("npm run dev")
+
 
     def notify(self, algorithm):
 
@@ -113,8 +138,24 @@ class Dashboard(Callback):
         self.app = Flask(__name__)        
 
         blue_print = Blueprint('blue_print', __name__)
-        blue_print.add_url_rule('/', view_func=self.dash_home)
+
         blue_print.add_url_rule('/listen', view_func=self.listen)
+   
+
+        # / should be routed to the file Dashboard/index.html
+        @self.app.route('/')
+        def serve_dashboard():
+            return render_template_string(self.dashboard_template())
+
+
+
+
+        # Add a route to serve  the Nuxt app
+        @self.app.route('/<path:filename>')
+        def serve_static(filename):
+            # Serve the file from the static directory
+            return send_from_directory(os.path.join(os.getcwd(), 'Dashboard'), filename)
+    
 
         self.app.register_blueprint(blue_print)
         self.app.run() 
@@ -135,6 +176,7 @@ class Dashboard(Callback):
     def dash_home(self):
 
         return self.dashboard_template()
+
 
 
     # SSE code taken from https://github.com/MaxHalford/flask-sse-no-deps
@@ -182,34 +224,11 @@ class Dashboard(Callback):
     def dashboard_template(): 
    
         source_path = inspect.getfile(Dashboard)          
-        source_path = source_path[0:-2] + "html"
+        source_path = source_path[0:-3] + "/index.html"
 
         template = Dashboard.read_source_file(source_path)        
 
-        template = template % (Dashboard.dashboard_css(), Dashboard.dashboard_js())
-
         return template
-
-    @staticmethod
-    def dashboard_js(): 
-
-        source_path = inspect.getfile(Dashboard)          
-        source_path = source_path[0:-2] + "js"
-
-        script = Dashboard.read_source_file(source_path)        
-
-        return script
-
-    @staticmethod
-    def dashboard_css(): 
-
-        source_path = inspect.getfile(Dashboard)          
-        source_path = source_path[0:-2] + "css"
-
-        script = Dashboard.read_source_file(source_path)
-
-        return script
-
 
     @staticmethod
     def read_source_file(file_path): 
@@ -279,6 +298,7 @@ class Dashboard(Callback):
 
 if __name__ == "__main__": 
 
+
     # 2 dimension example 
     #problem = get_problem("zdt2")
 
@@ -303,7 +323,7 @@ if __name__ == "__main__":
     res = minimize(get_problem("dtlz1"),
                    algorithm,
                    seed=2018194,
-                   callback=Dashboard(),
+                   callback=Dashboard(develop=True),
                    termination=('n_gen', 600))
         
     
