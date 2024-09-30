@@ -17,19 +17,21 @@
     <!-- Image widgets --> 
     <div 
       class="widget"
-      v-for="(imageContent, title) in imageWidgets" 
+      v-for="(title) in Object.keys(imageData)" 
       v-bind:id="'plot-wrapper-' + slugify(title)"
-      @click="highlightWidget(title)"
       :class="{highlighted : widgetIsHighlighted(title)}"
       >
 
       <h2>
         {{title}}
       </h2>
-      <img 
-        v-bind:src="'data:image/gif; base64,' + imageContent"
+      <img
+	  	v-if="imageData[title] && imageData[title].length > 0"
+        v-bind:src="'data:image/gif; base64,' + imageData[title][indeces[title]]"
         v-bind:id="'graph-image-' + slugify(title)"
+		v-bind:alt="title"
         > </img>
+	  <input type="range" :min="0" :max="imageData[title].length - 1" step="1" v-model.number="indeces[title]" />
     </div>
 
   </div>
@@ -45,28 +47,31 @@ export default {
   },
   data(){
     return {
-      imageWidgets : { }, 
+	  indeces: {},
+	  imageData: {},
       tableWidgets : { },
       highlightedWidget : ""
     }
   },
   // Created hook 
   mounted(){
-
     this.$sse.create('/listen')
       .on('message', (message) => {
-
             console.log("I've got something!") 
             let data = JSON.parse(message)
           
             let title = data.title
-          
-            if(title == "Overview"){
-              this.tableWidgets["Overview"] = data.content
-            } else {
-              this.imageWidgets[title] = data.content
-            }
 
+            if (title === "Overview")
+              return this.tableWidgets["Overview"] = data.content
+
+			if (!this.imageData[title])
+				this.imageData[title] = []
+
+			this.imageData[title].push(data.content)
+
+			if (this.indeces[title] === undefined || this.indeces[title] === this.imageData[title].length - 2)
+				this.indeces[title] = this.imageData[title].length - 1
           })
       .on('error', (err) => console.error('Failed to parse or lost connection:', err))
       .connect()
