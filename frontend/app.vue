@@ -27,11 +27,11 @@
       </h2>
       <img
 	  	v-if="imageData[title] && imageData[title].length > 0"
-        v-bind:src="'data:image/gif; base64,' + imageData[title][indeces[title]]"
+        v-bind:src="'data:image/gif; base64,' + imageData[title][indeces[title] ?? imageData[title].length - 1]"
         v-bind:id="'graph-image-' + slugify(title)"
 		v-bind:alt="title"
         > </img>
-	  <input type="range" :min="0" :max="imageData[title].length - 1" step="1" v-model.number="indeces[title]" />
+	  <input type="range" :min="0" :max="imageData[title].length - 1" step="1" :value="getCurrentIndex(title)" @input="updateIndex(title, $event.target.value)" />
     </div>
 
   </div>
@@ -58,9 +58,9 @@ export default {
     this.$sse.create('/listen')
       .on('message', (message) => {
             console.log("I've got something!") 
-            let data = JSON.parse(message)
+        	const data = JSON.parse(message)
           
-            let title = data.title
+            const title = data.title
 
             if (title === "Overview")
               return this.tableWidgets["Overview"] = data.content
@@ -69,9 +69,6 @@ export default {
 				this.imageData[title] = []
 
 			this.imageData[title].push(data.content)
-
-			if (this.indeces[title] === undefined || this.indeces[title] === this.imageData[title].length - 2)
-				this.indeces[title] = this.imageData[title].length - 1
           })
       .on('error', (err) => console.error('Failed to parse or lost connection:', err))
       .connect()
@@ -80,9 +77,15 @@ export default {
 
   },
   methods: {
+	getCurrentIndex(title) {
+		return this.indeces[title] ?? this.imageData[title].length - 1
+	},
     slugify(str){
-     return str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
+     return str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/(?:^-+)|(?:-+$)/g, '');
     }, 
+	updateIndex(title, value) {
+		this.indeces[title] = value
+	},
     highlightWidget(title){
       this.highlightedWidget = title;
     },
