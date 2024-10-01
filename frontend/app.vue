@@ -2,8 +2,8 @@
 	<div id="app" class="max-w-[calc(100%-5rem]) p-20 m-auto text-black dark:text-[#e8e6e3] bg-[#e8e8e8] dark:bg-[#25282a]">
 		<!-- Table widgets -->
 		<Widget v-for="(tableContent, title) in tableWidgets" :title="title">
-			<table class="border border-black dark:border-[#8c8273] border-collapse text-xl">
-				<tr class="border border-black dark:border-[#8c8273] border-collapse" v-for="(val, key) in tableContent">
+			<table class="text-xl">
+				<tr v-for="(val, key) in tableContent">
 					<th scope="row" class="font-normal text-left border border-black dark:border-[#8c8273] border-collapse p-2">{{ key }}</th>
 					<td class="border border-black dark:border-[#8c8273] border-collapse p-2">{{ val }}</td>
 				</tr>
