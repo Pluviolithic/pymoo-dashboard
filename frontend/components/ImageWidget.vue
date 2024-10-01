@@ -3,7 +3,7 @@
 		:optionalClasses="isEnlarged ? 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(90vw-2rem)] h-[calc(90vh-2rem)] z-50 cursor-pointer' : 'cursor-pointer'">
 		<img v-if="imageData && imageData.length > 0" @click="toggleEnlarge"
 			v-bind:src="'data:image/gif; base64,' + imageData[currentIndex]"
-			:id="'graph-image-' + slugify(title)" :alt="title" class="w-full" />
+			:id="'graph-image-' + slugify(title)" :alt="title" :class="isEnlarged ? 'h-[90%] mx-auto' : 'w-full'" />
 		<input class="w-full" type="range" :min="0" :max="imageData.length - 1" step="1" v-bind:value="currentIndex"
 			@input="updateIndex($event.target.value)" />
 		<a v-bind:href="'data:image/gif; base64,' + imageData[currentIndex]" :download="'graph-image-' + slugify(title) + currentIndex + 1 + '.gif'">
