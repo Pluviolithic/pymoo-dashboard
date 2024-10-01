@@ -3,9 +3,9 @@
 		<!-- Table widgets -->
 		<Widget v-for="(tableContent, title) in tableWidgets" :title="title">
 			<table class="border border-black dark:border-[#8c8273] border-collapse text-xl">
-				<tr class="overview-tab-r border border-black dark:border-[#8c8273] border-collapse" v-for="(val, key) in tableContent">
-					<td class="tab-item-key border border-black dark:border-[#8c8273] border-collapse p-2">{{ key }}</td>
-					<td class="tab-item-val border border-black dark:border-[#8c8273] border-collapse p-2">{{ val }}</td>
+				<tr class="border border-black dark:border-[#8c8273] border-collapse" v-for="(val, key) in tableContent">
+					<td class="border border-black dark:border-[#8c8273] border-collapse p-2">{{ key }}</td>
+					<td class="border border-black dark:border-[#8c8273] border-collapse p-2">{{ val }}</td>
 				</tr>
 			</table>
 		</Widget>
@@ -22,8 +22,6 @@ import ImageWidget from './components/ImageWidget.vue'
 import { createApp } from 'vue'
 
 export default {
-	components: {
-	},
 	data() {
 		return {
 			imageData: {},
@@ -50,8 +48,6 @@ export default {
 			.on('error', (err) => console.error('Failed to parse or lost connection:', err))
 			.connect()
 			.catch((err) => console.error('Failed make initial connection:', err));
-
-
 	}
 }
 </script>
