@@ -24,7 +24,9 @@ export default {
 	},
 	methods: {
 		slugify(str) {
-			return str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/(?:^-+)|(?:-+$)/g, '')
+			return str.toLowerCase().trim().replace(/[^\w\s-]|(?:^-+)|(?:-+$)/g, '').replace(/\s+/g, '-')
+			// I believe these are equivalent but the above is less replace operations and is more clear what is being replaced. If we run into issues, revert back to this
+			//return str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/(?:^-+)|(?:-+$)/g, '')
 		},
 		toggleEnlarge() {
 			this.isEnlarged = !this.isEnlarged
