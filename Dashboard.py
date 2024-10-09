@@ -1,14 +1,12 @@
-from flask import Flask, Blueprint, Response, send_from_directory
-from flask import render_template_string
+from flask import Flask
+from flask_socketio import SocketIO
 import io
 import os
-import base64
-import asyncio
-import threading
-import queue
-import time
 import json
-import inspect, webbrowser
+import base64
+import threading
+import json
+import webbrowser
 
 from pymoo.visualization.scatter import Scatter
 from pymoo.visualization.pcp import PCP
@@ -26,18 +24,10 @@ from pymoo.indicators.hv import Hypervolume
 from pymoo.util.ref_dirs import get_reference_directions
 
 class Dashboard(Callback):
-
-    def __init__(self, 
-                 open_browser=True,
-                 develop=False,
-                 **kwargs) -> None:
-
+    def __init__(self, open_browser=False, develop=False, **kwargs) -> None:
         super().__init__()
-
         self.data["HV"] = []
-
-        self.announcer = self.MessageAnnouncer()    
-
+        self.announcer = self.MessageAnnouncer()
         self.flask_thread = threading.Thread(target=self.start_server, daemon=True)
         self.flask_thread.start() 
     
@@ -52,7 +42,7 @@ class Dashboard(Callback):
             url += ":5000"
     
         if open_browser:
-            threading.Timer(1.25, lambda: webbrowser.open(url) ).start()
+            threading.Timer(1.25, lambda: webbrowser.open(url)).start()
 
         # Default visualizations + user defined ones
         self.visualizations = dict({
@@ -63,9 +53,6 @@ class Dashboard(Callback):
                 }, **kwargs)
 
         # User defined visualizations
-
-
-
         self.overview_fields = ['algorithm', 'problem', 'generation', 'seed', 'pop_size']
     
     def start_dev_server(self): 
@@ -104,13 +91,11 @@ class Dashboard(Callback):
 
             overview_dict[o] = overview_func(algorithm)
 
-        msg = self.format_sse(overview_dict, "Overview")
-
         # Send off overview table
-        self.announcer.announce(msg=msg)
+        self.announcer.announce(plot_title="Overview", content=overview_dict)
         
         ## Dashboard tables
-        for v in self.visualizations: 
+        for v in self.visualizations:
 
             plotter = self.visualizations[v]
 
@@ -128,116 +113,38 @@ class Dashboard(Callback):
             # Encode bytes
             plot_base64 = base64.b64encode(buffer.read()).decode('utf-8')
 
-            msg = self.format_sse(plot_base64, v)
-            
-            self.announcer.announce(msg=msg)
+            self.announcer.announce(plot_title=v, content=plot_base64)
 
 
     def start_server(self):
-        # Set up blueprints to organize routes
-        self.app = Flask(__name__)        
+        self.app = Flask(__name__)
+        self.socketio = SocketIO(self.app, cors_allowed_origins="*")
 
-        blue_print = Blueprint('blue_print', __name__)
+        @self.socketio.event
+        def connect():
+            print('Client connected')
+            self.announcer.set_socketio(self.socketio)
 
-        blue_print.add_url_rule('/listen', view_func=self.listen)
-   
+        @self.socketio.event
+        def disconnect():
+            print('Client disconnected')
 
-        # / should be routed to the file Dashboard/index.html
-        @self.app.route('/')
-        def serve_dashboard():
-            return render_template_string(self.dashboard_template())
+        self.socketio.run(self.app, port=5000)
 
-
-
-
-        # Add a route to serve  the Nuxt app
-        @self.app.route('/<path:filename>')
-        def serve_static(filename):
-            # Serve the file from the static directory
-            return send_from_directory(os.path.join(os.getcwd(), 'Dashboard'), filename)
-    
-
-        self.app.register_blueprint(blue_print)
-        self.app.run() 
-
-
-    # SSE listeners
-    def listen(self):
-
-        def stream():
-            messages = self.announcer.listen()  # returns a queue.Queue
-            while True:
-                msg = messages.get()  # blocks until a new message arrives
-                yield msg
-
-        return Response(stream(), mimetype='text/event-stream')
-
-    # Dashboard homepage
-    def dash_home(self):
-
-        return self.dashboard_template()
-
-
-
-    # SSE code taken from https://github.com/MaxHalford/flask-sse-no-deps
     class MessageAnnouncer:
-
         def __init__(self):
-            self.listeners = []
-
-        def listen(self):
-            self.listeners.append(queue.Queue(maxsize=5))
-            return self.listeners[-1]
-
-        def announce(self, msg):
-            # We go in reverse order because we might have to delete an element, which will shift the
-            # indices backward
-            for i in reversed(range(len(self.listeners))):
-                try:
-                    self.listeners[i].put_nowait(msg)
-                except queue.Full:
-                    del self.listeners[i]
-
-
-    @staticmethod
-    def format_sse(content, plot_title) -> str:
-        """Formats a string and an event name in order to follow the event stream convention.
-
-        >>> format_sse(data=json.dumps({'abc': 123}), event='Jackson 5')
-        'event: Jackson 5\\ndata: {"abc": 123}\\n\\n'
-
-        """
-
-        if isinstance(content, dict):
-            payload = "{\"title\": \"%s\", \"content\": %s}" % (plot_title, json.dumps(content))
-        elif isinstance(content, str): 
-            payload = "{\"title\": \"%s\", \"content\": \"%s\"}" % (plot_title, content)
-        else: 
-            raise TypeError("Wrong data given to format_sse")
-
-
-        msg = f'data: {payload}\n\n'
-
-        return msg
-
-    @staticmethod
-    def dashboard_template(): 
-   
-        source_path = inspect.getfile(Dashboard)          
-        source_path = source_path[0:-3] + "/index.html"
-
-        template = Dashboard.read_source_file(source_path)        
-
-        return template
-
-    @staticmethod
-    def read_source_file(file_path): 
-
-        with open(file_path, 'r') as file:
+            self.socketio = None
+            self.historical = []
         
-            file_content = file.read()
+        def set_socketio(self, socketio):
+            if not self.socketio:
+                self.socketio = socketio
+            self.socketio.emit('initial_data', {'msg': json.dumps(self.historical)})
 
-        return file_content
+        def announce(self, plot_title, content): 
+            self.historical.append({"title": plot_title, "content": content})
+            if (self.socketio):
+                self.socketio.emit('update', {'msg': json.dumps({"title": plot_title, "content": content})})
 
     ## Dashboard plots
     @staticmethod
@@ -325,6 +232,3 @@ if __name__ == "__main__":
                    seed=2018194,
                    callback=Dashboard(develop=True),
                    termination=('n_gen', 600))
-        
-    
-

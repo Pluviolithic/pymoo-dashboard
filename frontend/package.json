@@ -12,8 +12,8 @@
   "dependencies": {
     "@vueuse/core": "^11.0.0",
     "nuxt": "^3.12.4",
-    "vue": "^3.4.38",
-    "vue-sse": "^2.5.2"
+    "socket.io-client": "^4.8.0",
+    "vue": "^3.4.38"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.20",

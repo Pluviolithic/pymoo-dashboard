@@ -20,6 +20,7 @@ import Widget from './components/Widget.vue'
 import ImageWidget from './components/ImageWidget.vue'
 
 import { createApp } from 'vue'
+import { io } from 'socket.io-client'
 
 export default {
 	data() {
@@ -30,6 +31,47 @@ export default {
 	},
 	// Created hook 
 	mounted() {
+		const socket = io('http://localhost:5000')
+		socket.on('connect', () => {
+			console.log('Connected to server')
+		})
+		socket.on('initial_data', (initial_data) => {
+			const start = performance.now()
+			const data = JSON.parse(initial_data.msg)
+			console.log('Time to parse initial data for a length of', data.length, ':', performance.now() - start)
+			const tempImages = {}
+			const startPopulate = performance.now()
+			data.filter(({ title }) => title !== 'Overview').forEach(({title, content}) => {
+				if (!tempImages[title])
+					tempImages[title] = []
+				tempImages[title].push(content)
+			})
+			console.log('Time to populate initial data:', performance.now() - startPopulate)
+			const startOverview = performance.now()
+			this.tableWidgets['Overview'] = data.findLast(entry => entry.title === 'Overview').content
+			console.log('Time to populate overview:', performance.now() - startOverview)
+			const startImages = performance.now()
+			Object.entries(tempImages).forEach(entry => {
+				if (!this.imageData[entry[0]])
+					this.imageData[entry[0]] = []
+				this.imageData[entry[0]].unshift(...entry[1])
+			})
+			console.log('Time to populate images:', performance.now() - startImages)
+		})
+		socket.on('update', (update) => {
+			console.log("I've got something!")
+			const data = JSON.parse(update.msg)
+			const { title, content } = data
+			if (title === "Overview")
+				return this.tableWidgets["Overview"] = content
+			if (!this.imageData[title])
+				this.imageData[title] = []
+			this.imageData[title].push(content)
+		})
+		socket.on('disconnect', () => {
+			console.log('Disconnected from server')
+		})
+		/*
 		this.$sse.create('/listen')
 			.on('message', (message) => {
 				console.log("I've got something!")
@@ -48,6 +90,7 @@ export default {
 			.on('error', (err) => console.error('Failed to parse or lost connection:', err))
 			.connect()
 			.catch((err) => console.error('Failed make initial connection:', err));
+			*/
 	}
 }
 </script>
