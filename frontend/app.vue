@@ -48,7 +48,7 @@ export default {
 			})
 			console.log('Time to populate initial data:', performance.now() - startPopulate)
 			const startOverview = performance.now()
-			this.tableWidgets['Overview'] = data.findLast(entry => entry.title === 'Overview').content
+			this.tableWidgets['Overview'] = data.findLast(entry => entry.title === 'Overview')?.content
 			console.log('Time to populate overview:', performance.now() - startOverview)
 			const startImages = performance.now()
 			Object.entries(tempImages).forEach(entry => {
