@@ -9,6 +9,9 @@
 				</tr>
 			</table>
 		</Widget>
+		<form @submit.prevent="pause" action="http://localhost:5000/pause" method="post">
+			<button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">{{ buttonText }}</button>
+		</form>
 
 		<!-- Image widgets -->
 		<ImageWidget v-for="(imageData, title) in imageData" :title="title" :imageData="imageData" :key="title" />
@@ -25,8 +28,20 @@ import { io } from 'socket.io-client'
 export default {
 	data() {
 		return {
+			paused: false,
 			imageData: {},
 			tableWidgets: {},
+		}
+	},
+	computed: {
+		buttonText() {
+			return this.paused ? 'Resume' : 'Pause'
+		}
+	},
+	methods: {
+		async pause(event) {
+			const form = event.currentTarget ?? event.target
+			await fetch(form.action, { method: form.method })
 		}
 	},
 	// Created hook 
@@ -68,29 +83,13 @@ export default {
 				this.imageData[title] = []
 			this.imageData[title].push(content)
 		})
+		socket.on('pause', (paused) => {
+			this.paused = JSON.parse(paused.msg)
+			console.log('Got pause state of', this.paused)
+		})
 		socket.on('disconnect', () => {
 			console.log('Disconnected from server')
 		})
-		/*
-		this.$sse.create('/listen')
-			.on('message', (message) => {
-				console.log("I've got something!")
-				const data = JSON.parse(message)
-
-				const title = data.title
-
-				if (title === "Overview")
-					return this.tableWidgets["Overview"] = data.content
-
-				if (!this.imageData[title])
-					this.imageData[title] = []
-
-				this.imageData[title].push(data.content)
-			})
-			.on('error', (err) => console.error('Failed to parse or lost connection:', err))
-			.connect()
-			.catch((err) => console.error('Failed make initial connection:', err));
-			*/
 	}
 }
 </script>
