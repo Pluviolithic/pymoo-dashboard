@@ -1,5 +1,6 @@
-from flask import Flask
+from flask import Flask, request
 from flask_socketio import SocketIO
+import time
 import io
 import os
 import json
@@ -27,6 +28,7 @@ class Dashboard(Callback):
     def __init__(self, open_browser=False, develop=False, **kwargs) -> None:
         super().__init__()
         self.data["HV"] = []
+        self.paused = False
         self.announcer = self.MessageAnnouncer()
         self.flask_thread = threading.Thread(target=self.start_server, daemon=True)
         self.flask_thread.start() 
@@ -65,9 +67,8 @@ class Dashboard(Callback):
 
 
     def notify(self, algorithm):
-
-        ## Book keeping
-
+        while self.paused:
+            time.sleep(1)
         # PO values 
         pf = algorithm.pop.get("F")
 
@@ -120,10 +121,19 @@ class Dashboard(Callback):
         self.app = Flask(__name__)
         self.socketio = SocketIO(self.app, cors_allowed_origins="*")
 
+        @self.app.route('/pause', methods=['POST'])
+        def pause():
+            self.paused = not self.paused
+            self.announcer.pause(self.paused)
+            if self.paused:
+                return 'Paused'
+            else:
+                return 'Unpaused'
+
         @self.socketio.event
         def connect():
-            print('Client connected')
-            self.announcer.set_socketio(self.socketio)
+            print(f'Client {request.sid} connected')
+            self.announcer.set_socketio(self.socketio, request.sid, self.paused)
 
         @self.socketio.event
         def disconnect():
@@ -136,15 +146,20 @@ class Dashboard(Callback):
             self.socketio = None
             self.historical = []
         
-        def set_socketio(self, socketio):
+        def set_socketio(self, socketio, sid, paused):
             if not self.socketio:
                 self.socketio = socketio
-            self.socketio.emit('initial_data', {'msg': json.dumps(self.historical)})
+            self.socketio.emit('initial_data', {'msg': json.dumps(self.historical)}, room=sid)
+            self.socketio.emit('pause', {'msg': json.dumps(paused)})
 
         def announce(self, plot_title, content): 
             self.historical.append({"title": plot_title, "content": content})
             if (self.socketio):
                 self.socketio.emit('update', {'msg': json.dumps({"title": plot_title, "content": content})})
+        
+        def pause(self, paused):
+            if (self.socketio):
+                self.socketio.emit('pause', {'msg': json.dumps(paused)})
 
     ## Dashboard plots
     @staticmethod
