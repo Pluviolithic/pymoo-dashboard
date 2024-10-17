@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from flask_socketio import SocketIO
 import io
 import os
@@ -122,8 +122,8 @@ class Dashboard(Callback):
 
         @self.socketio.event
         def connect():
-            print('Client connected')
-            self.announcer.set_socketio(self.socketio)
+            print(f'Client {request.sid} connected')
+            self.announcer.set_socketio(self.socketio, request.sid)
 
         @self.socketio.event
         def disconnect():
@@ -136,10 +136,10 @@ class Dashboard(Callback):
             self.socketio = None
             self.historical = []
         
-        def set_socketio(self, socketio):
+        def set_socketio(self, socketio, sid):
             if not self.socketio:
                 self.socketio = socketio
-            self.socketio.emit('initial_data', {'msg': json.dumps(self.historical)})
+            self.socketio.emit('initial_data', {'msg': json.dumps(self.historical)}, room=sid)
 
         def announce(self, plot_title, content): 
             self.historical.append({"title": plot_title, "content": content})
