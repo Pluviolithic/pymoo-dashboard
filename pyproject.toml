@@ -1,0 +1,45 @@
+[project]
+name = "pymoo-dashboard"
+version = "0.1.0"
+description = "Add your description here"
+dependencies = [
+    "ruff>=0.7.0",
+    "pymoo>=0.6.1.3",
+    "flask>=3.0.3",
+    "flask-socketio>=5.4.1",
+]
+readme = "README.md"
+requires-python = ">= 3.8"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pymoo_dashboard"]
+
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+]
+
+[project.scripts]
+dashboard = 'pymoo_dashboard.Dashboard:main'
