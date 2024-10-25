@@ -28,6 +28,7 @@ import { io } from 'socket.io-client'
 export default {
 	data() {
 		return {
+			pausing: false,
 			paused: false,
 			imageData: {},
 			tableWidgets: {},
@@ -35,7 +36,11 @@ export default {
 	},
 	computed: {
 		buttonText() {
-			return this.paused ? 'Resume' : 'Pause'
+			if (this.pausing)
+				return 'Pausing...'
+			if (this.paused)
+				return 'Resume'
+			return 'Pause'
 		}
 	},
 	methods: {
@@ -83,7 +88,12 @@ export default {
 				this.imageData[title] = []
 			this.imageData[title].push(content)
 		})
+		socket.on('pausing', (pausing) => {
+			this.pausing = JSON.parse(pausing.msg)
+			console.log('Got pausing state of', this.pausing)
+		})
 		socket.on('pause', (paused) => {
+			this.pausing = false
 			this.paused = JSON.parse(paused.msg)
 			console.log('Got pause state of', this.paused)
 		})
