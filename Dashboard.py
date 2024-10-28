@@ -67,6 +67,7 @@ class Dashboard(Callback):
 
 
     def notify(self, algorithm):
+        self.announcer.start_pause(self.paused)
         while self.paused:
             time.sleep(1)
         # PO values 
@@ -158,8 +159,12 @@ class Dashboard(Callback):
                 self.socketio.emit('update', {'msg': json.dumps({"title": plot_title, "content": content})})
         
         def pause(self, paused):
-            if (self.socketio):
-                self.socketio.emit('pause', {'msg': json.dumps(paused)})
+            if self.socketio:
+                self.socketio.emit('pausing' if paused else 'pause', {'msg': json.dumps(paused)})
+        
+        def start_pause(self, paused):
+            if (self.socketio and paused):
+                self.socketio.emit('pause', {'msg': json.dumps(True)})
 
     ## Dashboard plots
     @staticmethod
