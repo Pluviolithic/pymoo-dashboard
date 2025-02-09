@@ -1,3 +1,240 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+html {
+	font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+*, ::before, ::after {
+	box-sizing: border-box;
+	border-width: 0;
+	border-style: solid;
+	border-color: #e5e7eb;
+}
+body {
+	margin: 0;
+}
+button {
+	cursor: pointer;
+	font-family: inherit;
+    font-feature-settings: inherit;
+    font-variation-settings: inherit;
+    font-size: 100%;
+    font-weight: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    margin: 0;
+    padding: 0;
+}
+#widget {
+	width: 24rem;
+	padding: 2rem;
+	box-shadow: 5px 5px #c6c6c6;
+	background-color: white;
+	margin-top: 2rem;
+	margin-bottom: 2rem;
+}
+#widget > h2 {
+	text-align: center;
+	display: block;
+	font-size: 1.5rem;
+	line-height: 2rem;
+	font-weight: 700;
+	margin-top: 1rem;
+	margin-bottom: 1rem;
+}
+.image-content {
+	width: 100%;
+}
+.move-button {
+	background-color: oklch(0.707 0.165 254.624);
+	color: white;
+	font-weight: 700;
+	padding-top: 0.5rem;
+	padding-bottom: 0.5rem;
+	padding-left: 1rem;
+	padding-right: 1rem;
+	border-radius: 0.25rem;
+	display: inline-block;
+}
+.move-button:hover {
+	background-color: oklch(0.488 0.243 264.376);
+}
+#slider {
+	width: 60%;
+}
+.sr-only {
+	position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+}
+.download-svg {
+	width: 1em;
+	height: 1em;
+	display: inline-block;
+}
+dialog {
+	padding: 0;
+	pointer-events: none;
+	opacity: 0;
+	visibility: hidden;
+	display: grid;
+	transition-property: opacity, backdrop-filter, visibility;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transition-duration: 150ms;
+	position: fixed;
+	inset: 0px;
+	backdrop-filter: blur(4px);
+	background-color: rgb(0 0 0 / 0.2);
+	height: 100%;
+	width: 100%;
+	z-index: 40;
+	max-height: none;
+	max-width: none;
+}
+dialog::backdrop {
+	transition: backdrop-filter .5s ease;
+}
+dialog[open] {
+	pointer-events: auto;
+	opacity: 1;
+	visibility: visible;
+}
+dialog > div {
+	height: 100%;
+	overflow-y: auto;
+}
+dialog > div > div {
+	margin-top: 5rem;
+	margin-bottom: 5rem;
+	z-index: 50;
+	background-color: white;
+	color: black;
+	width: 100%;
+	max-width: 95vw;
+	border-radius: 0.5rem;
+	box-shadow: 0.3px 0.5px 0.7px #0000001a,1.5px 2.9px 3.7px -0.4px #0000001a,2.7px 5.4px 6.8px -0.7px #0000001a,4.5px 8.9px 11.2px -1.1px #0000001a,7.1px 14.3px 18px -1.4px #0000001a,11.2px 22.3px 28.1px -1.8px #0000001a,17px 33.9px 42.7px -2.1px #0000001a,25px 50px 62.9px -2.5px #0000001a;
+	position: relative;
+	margin-left: auto;
+	margin-right: auto;
+	padding: 2rem;
+}
+dialog > div > div > h2 {
+	text-align: center;
+	display: block;
+	font-size: 1.5rem;
+	line-height: 2rem;
+	font-weight: 700;
+	margin-top: 1rem;
+	margin-bottom: 1rem;
+}
+dialog > form {
+	position: fixed;
+	inset: 0px;
+	color: transparent;
+}
+dialog > form > button {
+	height: 100%;
+	width: 100%;
+	cursor: default;
+}
+dialog[open] + .image-widget {
+	display: none;
+}
+.image-widget {
+	cursor: pointer;
+}
+#app {
+	padding: 5rem;
+	margin: auto;
+	color: black;
+	background-color: #e8e8e8;
+}
+table {
+	text-indent: 0;
+	border-color: inherit;
+	border-collapse: collapse;
+	font-size: 1.25rem;
+	line-height: 1.75rem;
+}
+th {
+	font-weight: 400;
+	text-align: left;
+	border-width: 1px !important;
+	border-color: black;
+	border-collapse: collapse;
+	padding: 0.5rem;
+}
+td {
+	border-width: 1px;
+	border-color: black;
+	border-collapse: collapse;
+	padding: 0.5rem;
+}
+#pause-button {
+	background-color: oklch(0.707 0.165 254.624);
+	color: white;
+	font-weight: 700;
+	padding-top: 0.5rem;
+	padding-bottom: 0.5rem;
+	padding-left: 1rem;
+	padding-right: 1rem;
+	border-radius: 0.25rem;
+}
+#pause-button:hover {
+	background-color: oklch(0.488 0.243 264.376);
+}
+@keyframes closemodal {
+	0% {
+		opacity: 1;
+		transform: translateY(-1rem);
+	}
+	100% {
+		opacity: 0;
+		transform: translateY(0);
+	}
+}
+@keyframes openmodal {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(-1rem);
+	}
+}
+@media (prefers-reduced-motion: no-preference) {
+	dialog > div > div {
+		animation: .2s ease-out forwards closemodal;
+	}
+	dialog[open] > div > div {
+		animation: .2s ease-in forwards openmodal;
+	}
+}
+@media (min-width: 640px) {
+	dialog > div > div {
+		max-width: 32rem;
+	}
+}
+@media (prefers-color-scheme: dark) {
+	#widget {
+		box-shadow: 5px 5px #383d3f;
+		background-color: #181a1b;
+	}
+	dialog > div > div {
+		background-color: #181a1b;
+		color: #e8e6e3;
+	}
+	#app {
+		color: #e8e6e3;
+		background-color: #25282a;
+	}
+	th {
+		border-color: #8c8273;
+	}
+	td {
+		border-color: #8c8273;
+	}
+}
