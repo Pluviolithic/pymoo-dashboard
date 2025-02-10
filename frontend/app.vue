@@ -9,7 +9,7 @@
 				</tr>
 			</table>
 		</Widget>
-		<form @submit.prevent="pause" action="http://localhost:5000/pause" method="post">
+		<form @submit.prevent="pause" :action="WS_URL + '/pause'" method="post">
 			<button id="pause-button" type="submit">{{ buttonText }}</button>
 		</form>
 
@@ -32,6 +32,7 @@ export default {
 			paused: false,
 			imageData: {},
 			tableWidgets: {},
+			WS_URL: useRuntimeConfig().public.WS_URL,
 		}
 	},
 	computed: {
@@ -47,15 +48,11 @@ export default {
 		async pause(event) {
 			const form = event.currentTarget ?? event.target
 			await fetch(form.action, { method: form.method })
-		}
-	},
-	// Created hook 
-	mounted() {
-		const socket = io('https://5000.joshuastock.net')
-		socket.on('connect', () => {
+		},
+		async connect() {
 			console.log('Connected to server')
-		})
-		socket.on('initial_data', (initial_data) => {
+		},
+		async initialData(initial_data) {
 			const start = performance.now()
 			const data = JSON.parse(initial_data.msg)
 			console.log('Time to parse initial data for a length of', data.length, ':', performance.now() - start)
@@ -77,8 +74,8 @@ export default {
 				this.imageData[entry[0]].unshift(...entry[1])
 			})
 			console.log('Time to populate images:', performance.now() - startImages)
-		})
-		socket.on('update', (update) => {
+		},
+		async update(update) {
 			console.log("I've got something!")
 			const data = JSON.parse(update.msg)
 			const { title, content } = data
@@ -87,19 +84,29 @@ export default {
 			if (!this.imageData[title])
 				this.imageData[title] = []
 			this.imageData[title].push(content)
-		})
-		socket.on('pausing', (pausing) => {
+		},
+		async get_pausing(pausing) {
 			this.pausing = JSON.parse(pausing.msg)
 			console.log('Got pausing state of', this.pausing)
-		})
-		socket.on('pause', (paused) => {
+		},
+		async get_paused(paused) {
 			this.pausing = false
 			this.paused = JSON.parse(paused.msg)
 			console.log('Got pause state of', this.paused)
-		})
-		socket.on('disconnect', () => {
+		},
+		async disconnect() {
 			console.log('Disconnected from server')
-		})
+		}
+	},
+	// Created hook 
+	mounted() {
+		const socket = io(this.WS_URL)
+		socket.on('connect', this.connect)
+		socket.on('initial_data', this.initialData)
+		socket.on('update', this.update)
+		socket.on('pausing', this.get_pausing)
+		socket.on('pause', this.get_paused)
+		socket.on('disconnect', this.disconnect)
 	}
 }
 </script>
