@@ -23,7 +23,7 @@
 		@click="openModal"
 	>
 		<ImageContent
-			:image-data="imageData"
+			:imageData="imageData"
 			:title="title"
 		/>
 	</Widget>
