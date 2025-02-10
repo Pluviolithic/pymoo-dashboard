@@ -9,7 +9,7 @@
 
 <script>
 export default {
-	name: 'Widget',
+	name: 'WidgetItem',
 	props: {
 		title: {
 			type: String,

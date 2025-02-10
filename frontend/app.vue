@@ -1,20 +1,45 @@
 <template>
 	<div id="app">
 		<!-- Table widgets -->
-		<Widget v-for="(tableContent, title) in tableWidgets" :title="title">
+		<Widget
+			v-for="(tableContent, title) in tableWidgets"
+			:key="title"
+			:title="title"
+		>
 			<table>
-				<tr v-for="(val, key) in tableContent">
-					<th scope="row">{{ key }}</th>
-					<td>{{ val }}</td>
+				<tr
+					v-for="(val, key) in tableContent"
+					:key="key"
+				>
+					<th scope="row">
+						{{ key }}
+					</th>
+					<td>
+						{{ val }}
+					</td>
 				</tr>
 			</table>
 		</Widget>
-		<form @submit.prevent="pause" :action="WS_URL + '/pause'" method="post">
-			<button id="pause-button" type="submit">{{ buttonText }}</button>
+		<form
+			:action="WS_URL + '/pause'"
+			method="post"
+			@submit.prevent="pause"
+		>
+			<button
+				id="pause-button"
+				type="submit"
+			>
+				{{ buttonText }}
+			</button>
 		</form>
 
 		<!-- Image widgets -->
-		<ImageWidget v-for="(imageData, title) in imageData" :title="title" :imageData="imageData" :key="title" />
+		<ImageWidget
+			v-for="(image, title) in imageData"
+			:key="title"
+			:title="title"
+			:image-data="image"
+		/>
 	</div>
 </template>
 
@@ -44,21 +69,31 @@ export default {
 			return 'Pause'
 		}
 	},
+	// Created hook 
+	mounted() {
+		const socket = io(this.WS_URL)
+		socket.on('connect', this.connect)
+		socket.on('initial_data', this.initialData)
+		socket.on('update', this.update)
+		socket.on('pausing', this.get_pausing)
+		socket.on('pause', this.get_paused)
+		socket.on('disconnect', this.disconnect)
+	},
 	methods: {
 		async pause(event) {
 			const form = event.currentTarget ?? event.target
 			await fetch(form.action, { method: form.method })
 		},
-		async connect() {
+		connect() {
 			console.log('Connected to server')
 		},
-		async initialData(initial_data) {
+		initialData(initial_data) {
 			const start = performance.now()
 			const data = JSON.parse(initial_data.msg)
 			console.log('Time to parse initial data for a length of', data.length, ':', performance.now() - start)
 			const tempImages = {}
 			const startPopulate = performance.now()
-			data.filter(({ title }) => title !== 'Overview').forEach(({title, content}) => {
+			data.filter(({ title }) => title !== 'Overview').forEach(({ title, content }) => {
 				if (!tempImages[title])
 					tempImages[title] = []
 				tempImages[title].push(content)
@@ -75,7 +110,7 @@ export default {
 			})
 			console.log('Time to populate images:', performance.now() - startImages)
 		},
-		async update(update) {
+		update(update) {
 			console.log("I've got something!")
 			const data = JSON.parse(update.msg)
 			const { title, content } = data
@@ -85,28 +120,18 @@ export default {
 				this.imageData[title] = []
 			this.imageData[title].push(content)
 		},
-		async get_pausing(pausing) {
+		get_pausing(pausing) {
 			this.pausing = JSON.parse(pausing.msg)
 			console.log('Got pausing state of', this.pausing)
 		},
-		async get_paused(paused) {
+		get_paused(paused) {
 			this.pausing = false
 			this.paused = JSON.parse(paused.msg)
 			console.log('Got pause state of', this.paused)
 		},
-		async disconnect() {
+		disconnect() {
 			console.log('Disconnected from server')
 		}
-	},
-	// Created hook 
-	mounted() {
-		const socket = io(this.WS_URL)
-		socket.on('connect', this.connect)
-		socket.on('initial_data', this.initialData)
-		socket.on('update', this.update)
-		socket.on('pausing', this.get_pausing)
-		socket.on('pause', this.get_paused)
-		socket.on('disconnect', this.disconnect)
 	}
 }
 </script>
