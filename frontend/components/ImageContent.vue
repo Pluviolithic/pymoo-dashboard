@@ -1,15 +1,54 @@
 <template>
-	<img class="image-content" v-if="imageData && imageData.length > 0"
-		v-bind:src="'data:image/gif; base64,' + imageData[currentIndex]"
-		:id="'graph-image-' + slugify(title)" :alt="title" />
-	<button class="move-button" @click="move(-1)" type="button"><<</button>
-	<input id="slider" type="range" :min="0" :max="imageData.length - 1" step="1" v-bind:value="currentIndex"
-		@input="updateIndex($event.target.value)" />
-	<button class="move-button" @click="move(1)" type="button">>></button>
-	<a v-bind:href="'data:image/gif; base64,' + imageData[currentIndex]" :download="'graph-image-' + slugify(title) + currentIndex + 1 + '.gif'">
+	<img
+		v-if="imageData && imageData.length > 0"
+		:id="'graph-image-' + slugify(title)"
+		class="image-content"
+		:src="'data:image/gif; base64,' + imageData[currentIndex]"
+		:alt="title"
+	>
+	<button
+		class="move-button"
+		type="button"
+		@click="move(-1)"
+	>
+		<!-- eslint-disable-next-line vue/no-parsing-error -->
+		<<
+	</button>
+	<input
+		id="slider"
+		type="range"
+		:min="0"
+		:max="imageData.length - 1"
+		step="1"
+		:value="currentIndex"
+		@input="updateIndex($event.target.value)"
+	>
+	<button
+		class="move-button"
+		type="button"
+		@click="move(1)"
+	>
+		>>
+	</button>
+	<a
+		:href="'data:image/gif; base64,' + imageData[currentIndex]"
+		:download="'graph-image-' + slugify(title) + currentIndex + 1 + '.gif'"
+	>
 		<span class="sr-only">Download image</span>
-		<svg class="download-svg" xmlns="http://www.w3.org/2000/svg" role="img" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-			<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+		<svg
+			class="download-svg"
+			xmlns="http://www.w3.org/2000/svg"
+			role="img"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke-width="1.5"
+			stroke="currentColor"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+			/>
 		</svg>
 	</a>
 </template>
@@ -25,6 +64,16 @@ export default {
 			type: String,
 			required: true
 		},
+	},
+	data() {
+		return {
+			index: null
+		}
+	},
+	computed: {
+		currentIndex() {
+			return this.index ?? this.imageData.length - 1
+		}
 	},
 	methods: {
 		move(direction) {
@@ -42,16 +91,6 @@ export default {
 			if (value >= this.imageData.length - 1)
 				return this.index = null
 			this.index = value
-		}
-	},
-	data() {
-		return {
-			index: null
-		}
-	},
-	computed: {
-		currentIndex() {
-			return this.index ?? this.imageData.length - 1
 		}
 	}
 }

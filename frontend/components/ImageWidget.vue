@@ -4,16 +4,28 @@
 			<div>
 				<h2>
 					{{ title }}
-					<ImageContent :imageData="imageData" :title="title" />
+					<ImageContent
+						:image-data="imageData"
+						:title="title"
+					/>
 				</h2>
 			</div>
 		</div>
 		<form method="dialog">
-			<button type="submit">Close</button>
+			<button type="submit">
+				Close
+			</button>
 		</form>
 	</dialog>
-	<Widget class="image-widget" :title="title" @click="openModal">
-		<ImageContent :imageData="imageData" :title="title" />
+	<Widget
+		class="image-widget"
+		:title="title"
+		@click="openModal"
+	>
+		<ImageContent
+			:image-data="imageData"
+			:title="title"
+		/>
 	</Widget>
 </template>
 <script>
