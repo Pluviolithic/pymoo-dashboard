@@ -8,7 +8,7 @@ _A tool to display live visualizations of your pymoo projects in real time_
 You will need to install Python (and preferably Anaconda). Once your environment is set up, you will need to run:
 
 ```shell
-pip install pymoo Flask 
+pip install -r requirements.txt
 ```
 
 ### Node requirements
